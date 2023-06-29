@@ -9,8 +9,8 @@ t.detailJson = {pageList:[{title:"封面"},{title:"01-02"},{title:"03-04"},{titl
 
 var ao=new WOW({boxClass:"wow",animateClass:"animated",offset:0,mobile:!0,live:!0});
 
-ao.init();
-   /* $('#fullpage').fullpage({
+
+ $('#fullpage').fullpage({
         //options here
 	sectionsColor:['fff'],
 	verticalCentered:!0,
@@ -19,9 +19,9 @@ ao.init();
 	scrollingSpeed:1e3,
 	scrollHorizontally: false,
 	scrollBar:!0,
-	afterRender:function(){alert(ao);ao.init()},
+	afterRender:function(){ao.init()},
 	onLeave:function(e,t){ao.init()},
-    }); */
+    }); 
 
 
 
