@@ -1,0 +1,150 @@
+//定义
+window._jylog = new Queue();
+
+var upload_log_url = "https://sjky/log";
+var tipTIme;//提示时间，如果网络异常，隔5分钟再提示一次
+window.onbeforeunload = function()
+{ 
+    uploadLog(true);
+}
+
+
+setInterval(function(){
+	uploadLog(false);
+}, 30000);
+		
+
+function startUploadLog(data){
+	uploadLog(true);
+}
+
+function uploadLog(isAll){
+	var data = [];
+	var length = 0;
+	if(window._jylog.isEmpty()){
+		return;
+	}
+	//每次最多取50条记录
+	while((length < 50 || isAll) && (!window._jylog.isEmpty())){
+		data.push(window._jylog.dequeue());
+		length++;
+	}
+	
+	console.log(data)
+	$.ajax({
+		type: "POST",
+		url: "api/member/diyuserlog",
+		data: JSON.stringify(data),
+		dataType: "json",
+		contentType: 'application/json',
+		success: function(data){
+			
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {            var reason = "状态码："+ XMLHttpRequest.status + "，状态:" + XMLHttpRequest.readyState                + "，错误信息:" + XMLHttpRequest.statusText                + "，返回响应信息：" + XMLHttpRequest.responseText                + "，请求状态：" + textStatus + "，errorThrown：" + errorThrown;            console.log(reason);            // var token = $("#token").val();           var element = ['网络', '网络', '网络异常', reason];           // if(token){           //     element.push(token);           // }           // putOperateUserData(element);           var nowDate = new Date().getTime();           if(!tipTIme || (nowDate - tipTIme) / 1000 / 60 >= 5){               tipTIme = nowDate;               layer.open({                   title:"温馨提示",                   content: "亲，您的网络连接不稳定，请检查您的网络是否正常。"               });           }        }
+	 });
+}
+
+function getBrowser(){
+    var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+    var isOpera = userAgent.indexOf("Opera") > -1;
+    if (isOpera) {
+        return "Opera"
+    }; //判断是否Opera浏览器
+    if (userAgent.indexOf("Firefox") > -1) {
+        return "FF";
+    } //判断是否Firefox浏览器
+    if (userAgent.indexOf("Chrome") > -1){
+	  return "Chrome";
+	 }
+    if (userAgent.indexOf("Safari") > -1) {
+        return "Safari";
+    } //判断是否Safari浏览器
+    if (userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1 && !isOpera) {
+        return "IE";
+    }; //判断是否IE浏览器
+	if(userAgent.indexOf('wechat') > -1){
+		return "weixin";
+	}
+	if(userAgent.indexOf('tencenttraveler') > -1 || userAgent.indexOf('qqbrowser')>-1){
+		return 'qq';
+	}
+	return 'else';
+}
+
+
+function guid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+        return v.toString(16);
+    });
+}
+
+function setCookie(name,value)
+{
+	document.cookie = name + "="+ escape (value) + ";expires=Fri, 31 Dec 9999 23:59:59 GMT";
+}
+
+function getCookie(name)
+{
+	var arr,reg=new RegExp("(^| )"+name+"=([^;]*)(;|$)");
+	if(arr=document.cookie.match(reg))
+	return unescape(arr[2]);
+	else
+	return null;
+}
+ 
+//定义队列
+function Queue() {
+	this.data = [];
+	
+	this.push = enqueue;
+	this.enqueue = enqueue;//队尾添加一个元素
+	this.dequeue = dequeue;//队首删除一个元素
+	this.isEmpty = isEmpty;//判断队列是否为空
+	
+	this.front = front;    //读取队首元素
+	this.back = back;      //读取队尾元素
+	this.toStringData = toStringData;//显示队内元素
+					
+	//在队尾添加一个元素即为入队
+	function enqueue(element) {
+		
+		if(!getCookie('jiangying_log_oprater')){
+			setCookie('jiangying_log_oprater', guid());
+		}
+		var ele = {
+			type: element[0],
+			page: element[1],
+			operate: element[2],
+			content: element[3],
+			operateTime: new Date(),
+			order: element[4],
+			platform: 'mobile',
+			ua: navigator.userAgent,
+			user:  getCookie('jiangying_log_oprater')
+		}
+		this.data.push(ele);
+		//添加时间 UA 平台 
+	}
+
+	//在队首删除一个元素，并返回被删除的值
+	function dequeue() {
+		return this.data.shift();
+	}
+	//返回数组第一项即返回队首元素
+	function front() {
+		return this.data[0];
+	}
+	//返回数组最后一项即返回队尾元素
+	function back() {
+		return this.data[this.data.length - 1];
+	}
+	//数组长度为0即队列为空
+	function isEmpty() {
+		return this.data.length === 0;
+	}
+	//打印队列
+	function toStringData() {
+		return this.data;
+	}
+}
